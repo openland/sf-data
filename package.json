@@ -1,0 +1,27 @@
+{
+  "name": "sf-data",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/statecrafthq/sf-data.git",
+  "author": "Steve Kite <korshakov.stepan@gmail.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=v8.0.0 <v9.0.0"
+  },
+  "dependencies": {
+    "@types/csv-parse": "^1.1.11",
+    "@types/node": "^9.3.0",
+    "@types/papaparse": "^4.1.33",
+    "@types/wellknown": "^0.5.0",
+    "csv": "^2.0.0",
+    "csv-parser": "^1.12.0",
+    "papaparse": "^4.3.6",
+    "rx-from-csv": "^1.0.0",
+    "ts-node": "^4.1.0",
+    "typescript": "^2.6.2",
+    "wellknown": "^0.5.0"
+  },
+  "scripts": {
+    "start": "./node_modules/.bin/tsc -p tsconfig.json && node ./build/index.js"
+  }
+}
