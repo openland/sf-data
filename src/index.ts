@@ -38,5 +38,15 @@ async function doWork() {
     console.warn(`${new Date().getTime() - start} ms`);
 }
 
-doWork();
+// async function doCrimeParsing() {
+//     let file = fs.readFileSync('./downloads/SF_Crime.csv', { encoding: 'utf8' });
+//     // let res = PP.parse(file, { header: true });
+// }
+
+// doCrimeParsing();
+
+let stream = fs.createReadStream('./downloads/SF_Crime.csv', 'utf8');
+let parsed = PP.parse(stream as any, { encoding: 'utf8' });
+
+// fs.readFileSync('./downloads/SF_Crime.csv', { encoding: 'utf8' });
 
