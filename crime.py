@@ -43,18 +43,19 @@ def upload_incidents(data):
         }
     }
     data = json.dumps(container)
-    response = session.post(url, data=data, headers=headers, stream=False)
-    try:
-        rdata = json.loads(response.text)
-        if rdata['data']['updateIncidents'] != 'ok':
-            raise InvalidResponseError("Wrong response!")
-    except BaseException as e:
-        print("Wrong Response!")
-        print("Sent:")
-        print(data)
-        print("Got:")
-        print(response.text)
-        raise e
+    for i in range(3):
+        response = session.post(url, data=data, headers=headers, stream=False)
+        try:
+            rdata = json.loads(response.text)
+            if rdata['data']['updateIncidents'] != 'ok':
+                raise InvalidResponseError("Wrong response!")
+        except BaseException as e:
+            print("Wrong Response!")
+            print("Sent:")
+            print(data)
+            print("Got:")
+            print(response.text)
+            raise e
 
     #    print(r.text)
     end = time.time()

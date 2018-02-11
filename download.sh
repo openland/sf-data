@@ -14,3 +14,15 @@ mv ./tmp/SF_Zoning.csv ./downloads/SF_Zoning.csv
 
 wget -O "./tmp/SF_Crime.csv" "https://storage.googleapis.com/datasets.statecraft.one/SanFrancisco/SF_Crime_2018_02_05.csv"
 mv ./tmp/SF_Crime.csv ./downloads/SF_Crime.csv
+
+wget -O "./tmp/SF_Supervisor_Districts.csv" "https://storage.googleapis.com/datasets.statecraft.one/SanFrancisco/SF_Supervisor_Districts.csv"
+mv ./tmp/SF_Supervisor_Districts.csv ./downloads/SF_Supervisor_Districts.csv
+
+wget -O "./tmp/SF_Assesor_Tax.csv" "https://storage.googleapis.com/datasets.statecraft.one/SanFrancisco/SF_Assesor_Tax_2017_08_17.csv"
+mv ./tmp/SF_Assesor_Tax.csv ./downloads/SF_Assesor_Tax.csv
+
+wget -O "./tmp/SF_Assesor_Blocks.csv" "https://storage.googleapis.com/datasets.statecraft.one/SanFrancisco/SF_Assesor_Blocks_2018_02_10.csv"
+mv ./tmp/SF_Assesor_Blocks.csv ./downloads/SF_Assesor_Blocks.csv
+
+wget -O "./tmp/SF_Assesor_Lots.csv" "https://storage.googleapis.com/datasets.statecraft.one/SanFrancisco/SF_Assesor_Lots_2018_02_10.csv"
+mv ./tmp/SF_Assesor_Lots.csv ./downloads/SF_Assesor_Lots.csv
