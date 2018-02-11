@@ -21,12 +21,32 @@ print(end - start)
 
 print("Loading Districts...")
 start = time.time()
-SUPERVISOR = pd.read_csv("downloads/SF_Supervisor_Districts.csv", sep=',', dtype={
-    'supervisor': int,
+SUPERVISOR_DF = pd.read_csv("downloads/SF_Supervisor_Districts.csv", sep=',', dtype={
+    'supervisor': str,
     'the_geom': str,
 })
 end = time.time()
 print(end - start)
+
+def loadShape(src):
+    geometry = geojson.Feature(geometry=src, properties={})
+    return geometry.geometry
+
+def findBestId(geo, df):
+    max = -1
+    id = None
+    try:
+        gshape = shape(geo)    
+        for key in df.keys():
+            dst = shape(df[key]['geometry'])
+            area = dst.intersection(gshape).area
+            if max < area:
+                max = area
+                id = key
+    except:
+        pass
+    return id
+
 
 def loadCoordinates(src):
     geometry = geojson.Feature(geometry=shapely.wkt.loads(src).simplify(0.00001, preserve_topology=True), properties={})
@@ -76,6 +96,19 @@ def saveGeoJson(src, name):
     f.close()
 
 #
+# Preprocessing Districts
+#
+
+SUPERVISOR={}
+for intex, row in SUPERVISOR_DF.iterrows():
+    district = row['supervisor']
+    geo = shapely.wkt.loads(row['the_geom']).simplify(0.00001, preserve_topology=True)
+    SUPERVISOR[district] = {
+        'geometry': loadShape(geo)
+    }
+    
+
+#
 # Preprocessing Blocks
 #
 
@@ -93,6 +126,9 @@ for key in BLOCKS.keys():
     converted = convertCoordinates(geo_raw)
     block['geometry'] = converted
     block['area'] = measureArea(converted)
+    block['sdistr'] = findBestId(converted, SUPERVISOR)
 
 save(BLOCKS, "Blocks")
 saveGeoJson(BLOCKS, "Blocks")
+
+saveGeoJson(SUPERVISOR, "Supervisor")
