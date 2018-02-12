@@ -19,6 +19,18 @@ BLOCKS_DF = pd.read_csv("downloads/SF_Assesor_Blocks.csv", sep=',', dtype={
 end = time.time()
 print(end - start)
 
+print("Loading Lots...")
+start = time.time()
+LOTS_DF = pd.read_csv("downloads/SF_Assesor_Lots.csv", sep=',', dtype={
+    'blklot': str,
+    'block_num': str,
+    'mapblklot': str,
+    'geometry': str,
+    'multigeom': bool,
+})
+end = time.time()
+print(end - start)
+
 print("Loading Districts...")
 start = time.time()
 SUPERVISOR_DF = pd.read_csv("downloads/SF_Supervisor_Districts.csv", sep=',', dtype={
@@ -56,10 +68,25 @@ def convertCoordinates(src):
     polygons = []
     for s in src:
         polygons.append([s])
+    if len(polygons) == 0:
+        return None
     if len(polygons) == 1:
         return geojson.Polygon(polygons[0])
     else:
         return geojson.MultiPolygon(polygons)
+
+def convertExtras(src):
+    res = {'ints':[], 'floats': [], 'strings': []}
+    for k in src.keys():
+        s = src[k]
+        if isinstance(s, str):
+            res['strings'].append({'key': k, 'value': s})
+        elif isinstance(s, float):
+            res['floats'].append({'key': k, 'value': s})
+        elif isinstance(s, int):
+            res['ints'].append({'key': k, 'value': s})
+    return res
+
 
 def measureArea(src):
     shp = shape(src)
@@ -73,9 +100,10 @@ def save(src, name):
         s = src[k]
         data = {}
         data['id'] = k
-        for k2 in s.keys():
-            if k2 is not 'geometry_raw':
-                data[k2] = s[k2]
+        data['geometry'] = s['geometry_raw']
+        data['extras'] = convertExtras(s['extras'])
+        if 'blockId' in s:
+            data['blockId'] = s['blockId']
         v = json.dumps(data)
         f.write(v + '\n')
     f.close()
@@ -99,6 +127,9 @@ def saveGeoJson(src, name):
 # Preprocessing Districts
 #
 
+print("Preprocessing Districts...")
+start = time.time()
+
 SUPERVISOR={}
 for intex, row in SUPERVISOR_DF.iterrows():
     district = row['supervisor']
@@ -106,29 +137,78 @@ for intex, row in SUPERVISOR_DF.iterrows():
     SUPERVISOR[district] = {
         'geometry': loadShape(geo)
     }
-    
+
+end = time.time()
+print(end - start)    
 
 #
 # Preprocessing Blocks
 #
 
+print("Preprocessing Blocks...")
+start = time.time()
+
 BLOCKS = {}
 for index, row in BLOCKS_DF.iterrows():
     block_number = row['block_num']
-    coordinates = loadCoordinates(row['geometry'])
     if block_number not in BLOCKS:
-        BLOCKS[block_number] = {'geometry_raw':[]}
-    BLOCKS[block_number]['geometry_raw'].append(coordinates)
+        BLOCKS[block_number] = {'geometry_raw':[], 'extras': {}}
+    if isinstance(row['geometry'], str):
+        coordinates = loadCoordinates(row['geometry'])
+        BLOCKS[block_number]['geometry_raw'].append(coordinates)
 
 for key in BLOCKS.keys():
     block = BLOCKS[key]
     geo_raw = block['geometry_raw']
     converted = convertCoordinates(geo_raw)
-    block['geometry'] = converted
-    block['area'] = measureArea(converted)
-    block['sdistr'] = findBestId(converted, SUPERVISOR)
+    if converted is not None:    
+        block['geometry'] = converted
+        block['extras']['area'] = measureArea(converted)
+        block['extras']['supervisor_id'] = findBestId(converted, SUPERVISOR)
 
-save(BLOCKS, "Blocks")
-saveGeoJson(BLOCKS, "Blocks")
+end = time.time()
+print(end - start)    
+
+#
+# Preprocessing Lots
+#
+
+print("Preprocessing Lots...")
+start = time.time()
+
+LOTS = {}
+for index, row in LOTS_DF.iterrows():
+    block_number = row['block_num']
+    map_parcel = row['mapblklot']
+    parcel = row['blklot']
+    if map_parcel not in LOTS:
+        LOTS[map_parcel] = {'geometry_raw':[], 'subparcels':[], 'extras': {}}
+
+    LOTS[map_parcel]['subparcels'].append(parcel)
+    
+    if (map_parcel == parcel) and isinstance(row['geometry'], str):
+        coordinates = loadCoordinates(row['geometry'])
+        LOTS[map_parcel]['geometry_raw'].append(coordinates)
+        LOTS[map_parcel]['blockId'] = block_number
+
+for key in LOTS.keys():
+    block = LOTS[key]
+    geo_raw = block['geometry_raw']
+    converted = convertCoordinates(geo_raw)
+    if converted is not None:
+        block['geometry'] = converted
+        block['extras']['area'] = measureArea(converted)
+        block['extras']['supervisor_id'] = findBestId(converted, SUPERVISOR)
+
+end = time.time()
+print(end - start)    
+
+#
+# Saving
+#
 
 saveGeoJson(SUPERVISOR, "Supervisor")
+saveGeoJson(BLOCKS, "Blocks")
+
+save(BLOCKS, "Blocks")
+save(LOTS, "Lots")
