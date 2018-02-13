@@ -4,7 +4,7 @@ import time
 print("Loading Parcels...")
 start = time.time()
 PARCELS = pd.read_csv(
-    "downloads/Parcels.csv",
+    "downloads/SF_Parcels.csv",
     sep=',',
     dtype={
         'blklot': str,
@@ -26,6 +26,6 @@ PARCELS["districtna_converted"] = PARCELS["districtna"].apply(converter)
 PARCELS["zoning_sim_converted"] = PARCELS["zoning_sim"].apply(converter)
 
 # print(PARCELS.groupby("districtna_converted").size())
-# print(PARCELS["zoning_sim_converted"].unique())
+print(PARCELS["zoning_sim"].unique())
 # print(PARCELS.groupby("zoning_sim_converted").size())
-print(PARCELS[PARCELS["zoning_sim"] == "C-2|P"])
+# print(PARCELS[PARCELS["zoning_sim"] == "C-2|P"])

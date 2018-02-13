@@ -8,6 +8,7 @@ from shapely.geometry import shape
 from shapely.ops import transform
 import pyproj
 from functools import partial
+from tqdm import tqdm
 
 print("Loading Blocks...")
 start = time.time()
@@ -37,6 +38,10 @@ SUPERVISOR_DF = pd.read_csv("downloads/SF_Supervisor_Districts.csv", sep=',', dt
     'supervisor': str,
     'the_geom': str,
 })
+ZONING_DF = pd.read_csv("downloads/SF_Parcels.csv", sep=',', dtype={
+    'mapblklot': str,
+    'zoning_sim': str,
+})
 end = time.time()
 print(end - start)
 
@@ -59,6 +64,21 @@ def findBestId(geo, df):
         pass
     return id
 
+def findAllIntersections(geo, df):
+    res = []
+    try:
+        gshape = shape(geo)
+        for key in df.keys():
+            try:
+                dst = shape(df[key]['geometry'])
+                area = dst.intersection(gshape).area
+                if area > 0:
+                    res.append(df[key])
+            except:
+                pass
+    except:
+        pass        
+    return res
 
 def loadCoordinates(src):
     geometry = geojson.Feature(geometry=shapely.wkt.loads(src).simplify(0.00001, preserve_topology=True), properties={})
@@ -76,7 +96,7 @@ def convertCoordinates(src):
         return geojson.MultiPolygon(polygons)
 
 def convertExtras(src):
-    res = {'ints':[], 'floats': [], 'strings': []}
+    res = {'ints':[], 'floats': [], 'strings': [], 'enums': []}
     for k in src.keys():
         s = src[k]
         if isinstance(s, str):
@@ -85,6 +105,8 @@ def convertExtras(src):
             res['floats'].append({'key': k, 'value': s})
         elif isinstance(s, int):
             res['ints'].append({'key': k, 'value': s})
+        else:
+            res['enums'].append({'key': k, 'value': s})
     return res
 
 
@@ -138,6 +160,22 @@ for intex, row in SUPERVISOR_DF.iterrows():
         'geometry': loadShape(geo)
     }
 
+# ZONING={}
+# for index, row in ZONING_DF.iterrows():
+#     code = row['zoning_sim']
+#     if code not in ZONING:
+#         ZONING[code] = {'geometry_raw':[], 'extras': {}}
+#     coordinates = loadCoordinates(row['geometry'])
+#     ZONING[code]['geometry_raw'].append(coordinates)
+
+# for key in ZONING.keys():
+#     zone = ZONING[key]
+#     geo_raw = zone['geometry_raw']
+#     converted = convertCoordinates(geo_raw)
+#     zone['geometry'] = converted
+#     zone['extras']['area'] = measureArea(converted)
+
+
 end = time.time()
 print(end - start)    
 
@@ -177,12 +215,12 @@ print("Preprocessing Lots...")
 start = time.time()
 
 LOTS = {}
-for index, row in LOTS_DF.iterrows():
+for index, row in tqdm(LOTS_DF.iterrows()):
     block_number = row['block_num']
     map_parcel = row['mapblklot']
     parcel = row['blklot']
     if map_parcel not in LOTS:
-        LOTS[map_parcel] = {'geometry_raw':[], 'subparcels':[], 'extras': {}}
+        LOTS[map_parcel] = {'geometry_raw':[], 'subparcels':[], 'extras': {'zoning':[]}}
 
     LOTS[map_parcel]['subparcels'].append(parcel)
     
@@ -191,17 +229,28 @@ for index, row in LOTS_DF.iterrows():
         LOTS[map_parcel]['geometry_raw'].append(coordinates)
         LOTS[map_parcel]['blockId'] = block_number
 
-for key in LOTS.keys():
+for key in tqdm(LOTS.keys()):
     block = LOTS[key]
     geo_raw = block['geometry_raw']
     converted = convertCoordinates(geo_raw)
+
     if converted is not None:
         block['geometry'] = converted
         block['extras']['area'] = measureArea(converted)
         block['extras']['supervisor_id'] = findBestId(converted, SUPERVISOR)
 
+for index, row in ZONING_DF[ZONING_DF['zoning_sim'].notna()].iterrows():
+    lot = row['mapblklot']
+    zoning = row['zoning_sim']
+    zoning_array = zoning.split('|')
+    if lot in LOTS:
+        lt = LOTS[lot]
+        for z in zoning_array:
+            if z not in lt['extras']['zoning']:
+                lt['extras']['zoning'].append(z)
+
 end = time.time()
-print(end - start)    
+print(end - start)
 
 #
 # Saving

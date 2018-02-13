@@ -76,6 +76,8 @@ def importData(fileName, query):
     pending = []
     with open(fileName, "r") as lines:
         for line in lines:
+            if line == "":
+                continue
             s = json.loads(line.rstrip('\n'))
             pending.append(s)
             if len(pending) > 50:
@@ -91,4 +93,5 @@ def importData(fileName, query):
 
 
 # importData('Blocks.jsvc', "mutation($data: [BlockInput!]!) { importBlocks(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", blocks: $data) }")
-importData('Lots.jsvc', "mutation($data: [ParcelInput!]!) { importParcels(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", parcels: $data) }")
+# importData('Lots.jsvc', "mutation($data: [ParcelInput!]!) { importParcels(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", parcels: $data) }")
+importData('Taxes.jsvc', "mutation($data: [ParcelInput!]!) { importParcels(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", parcels: $data) }")
