@@ -399,7 +399,7 @@ for key in tqdm(LOTS.keys(), total=len(LOTS)):
 
 for index, row in ZONING_DF[ZONING_DF['zoning'].notna()].iterrows():
     lot = row['mapblklot']
-    zoning = row['zoning']
+    zoning = row['zoning_sim']
     zoning_array = zoning.split('|')
     zoning_cat = []
     for z in zoning_array:
