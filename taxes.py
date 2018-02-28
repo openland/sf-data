@@ -42,7 +42,15 @@ TAXES_DF = pd.read_csv(
         'Closed Roll Assessed Land Value': str,
         'Closed Roll Assessed Personal Prop Value': str,
         'Closed Roll Assessed Improvement Value': str,
-        'Year Property Built': str
+        'Year Property Built': str,
+        'Number of Bathrooms': str,
+        'Number of Bedrooms': str,
+        'Number of Rooms': str,
+        'Number of Stories': str,
+        'Number of Units': str,
+        'Current Sales Date': str,
+        'Prior Sales Date': str,
+        'Recordation Date': str
     })
 end = time.time()
 print(end - start)
@@ -69,6 +77,23 @@ for index, row in tqdm(TAXES_DF.iterrows()):
 
     if isinstance(row['Year Property Built'], str):
         LOTS[parcelId]['extras']['year_built'] = row['Year Property Built']
+    if isinstance(row['Number of Bathrooms'], str):
+        LOTS[parcelId]['extras']['count_bathrooms'] = int(float(row['Number of Bathrooms']))
+    if isinstance(row['Number of Bedrooms'], str):
+        LOTS[parcelId]['extras']['count_bedrooms'] = int(float(row['Number of Bedrooms']))
+    if isinstance(row['Number of Rooms'], str):
+        LOTS[parcelId]['extras']['count_rooms'] = int(float(row['Number of Rooms']))
+    if isinstance(row['Number of Stories'], str):
+        LOTS[parcelId]['extras']['count_stories'] = int(float(row['Number of Stories']))
+    if isinstance(row['Number of Units'], str):
+        LOTS[parcelId]['extras']['count_units'] = int(float(row['Number of Units']))
 
+    if isinstance(row['Current Sales Date'], str):
+        LOTS[parcelId]['extras']['sales_date'] = pd.to_datetime(row['Current Sales Date']).strftime('%Y-%m-%d')
+    if isinstance(row['Prior Sales Date'], str):
+        LOTS[parcelId]['extras']['sales_date_prior'] = pd.to_datetime(row['Current Sales Date']).strftime('%Y-%m-%d')
+    if isinstance(row['Recordation Date'], str):
+        LOTS[parcelId]['extras']['recordation_date'] = pd.to_datetime(row['Recordation Date']).strftime('%Y-%m-%d')
+        
 
 save(LOTS, 'Taxes')

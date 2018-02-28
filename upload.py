@@ -10,7 +10,7 @@ import numpy as np
 
 SESSION_THREAD_LOCAL = threading.local()
 
-SERVER = "local"
+SERVER = "prod"
 # if 'UPLOAD_SERVER' in os.environ:
 #     print("Env: {}".format(os.environ['UPLOAD_SERVER']))
 #     SERVER = os.environ['UPLOAD_SERVER']
@@ -81,18 +81,27 @@ def importData(fileName, query):
             s = json.loads(line.rstrip('\n'))
             pending.append(s)
             if len(pending) > 50:
-                #while True:
-                    #try:
-                upload_blocks(pending, query)
-                    #    break
-                    #except:
-                    #    pass
+                while True:
+                    try:
+                        upload_blocks(pending, query)
+                        break
+                    except InvalidResponseError as e:
+                        raise e
+                    except:
+                        pass
                 pending = []
     if len(pending) > 0:
-        upload_blocks(pending, query)
+        while True:
+            try:
+                upload_blocks(pending, query)
+                break
+            except InvalidResponseError as e:
+                raise e
+            except:
+                pass
 
 
 # importData('Blocks.jsvc', "mutation($data: [BlockInput!]!) { importBlocks(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", blocks: $data) }")
-# importData('Lots.jsvc', "mutation($data: [ParcelInput!]!) { importParcels(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", parcels: $data) }")
+importData('Lots.jsvc', "mutation($data: [ParcelInput!]!) { importParcels(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", parcels: $data) }")
 # importData('Taxes.jsvc', "mutation($data: [ParcelInput!]!) { importParcels(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", parcels: $data) }")
-importData('Addresses.jsvc', "mutation($data: [ParcelInput!]!) { importParcels(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", parcels: $data) }")
+# importData('Addresses.jsvc', "mutation($data: [ParcelInput!]!) { importParcels(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", parcels: $data) }")

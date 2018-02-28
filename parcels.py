@@ -3,17 +3,18 @@ import math
 import time
 print("Loading Parcels...")
 start = time.time()
-PARCELS = pd.read_csv(
-    "downloads/SF_Parcels.csv",
+ZONING = pd.read_csv(
+    "downloads/SF_Zoning.csv",
     sep=',',
     dtype={
-        'blklot': str,
-        'geometry': str,
-        'block_num': str,
-        'lot_num': str,
-        'mapblklot': str,
-        'datemap_dr': str
+        'districtna': str,
+        'gen': str,
+        'zoning': str,
+        'zoning_sim': str,
+        'url': str,
     })
+ZONING=ZONING[["districtna", "gen", "zoning", "zoning_sim", "url"]]
+ZONING=ZONING.drop_duplicates()
 end = time.time()
 print(end - start)
 def converter(s):
@@ -22,10 +23,12 @@ def converter(s):
     return 'None'
     
 
-PARCELS["districtna_converted"] = PARCELS["districtna"].apply(converter)
-PARCELS["zoning_sim_converted"] = PARCELS["zoning_sim"].apply(converter)
+# PARCELS["districtna_converted"] = PARCELS["districtna"].apply(converter)
+# PARCELS["zoning_sim_converted"] = PARCELS["zoning_sim"].apply(converter)
 
 # print(PARCELS.groupby("districtna_converted").size())
-print(PARCELS["zoning_sim"].unique())
+print(ZONING)
+
+ZONING.to_csv('Zoning.csv')
 # print(PARCELS.groupby("zoning_sim_converted").size())
 # print(PARCELS[PARCELS["zoning_sim"] == "C-2|P"])
