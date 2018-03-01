@@ -32,3 +32,6 @@ mv ./tmp/SF_Addresses_Full.csv ./downloads/SF_Addresses_Full.csv
 
 wget -O "./tmp/SF_Realtor_Neighborhoods.csv" "https://storage.googleapis.com/datasets.statecraft.one/SanFrancisco/SF_Realtor_Neighborhoods_2010.csv"
 mv ./tmp/SF_Realtor_Neighborhoods.csv ./downloads/SF_Realtor_Neighborhoods.csv
+
+wget -O "./tmp/SF_Parcels_History.csv" "https://storage.googleapis.com/datasets.statecraft.one/SanFrancisco/SF_Parcels_History_2018_02_28.csv"
+mv ./tmp/SF_Parcels_History.csv ./downloads/SF_Parcels_History.csv
