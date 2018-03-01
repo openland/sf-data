@@ -11,9 +11,9 @@ import numpy as np
 SESSION_THREAD_LOCAL = threading.local()
 
 SERVER = "prod"
-# if 'UPLOAD_SERVER' in os.environ:
-#     print("Env: {}".format(os.environ['UPLOAD_SERVER']))
-#     SERVER = os.environ['UPLOAD_SERVER']
+if 'UPLOAD_SERVER' in os.environ:
+    print("Env: {}".format(os.environ['UPLOAD_SERVER']))
+    SERVER = os.environ['UPLOAD_SERVER']
 
 
 class InvalidResponseError(Exception):
@@ -102,6 +102,7 @@ def importData(fileName, query):
 
 
 # importData('Blocks.jsvc', "mutation($data: [BlockInput!]!) { importBlocks(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", blocks: $data) }")
-importData('Lots.jsvc', "mutation($data: [ParcelInput!]!) { importParcels(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", parcels: $data) }")
+# importData('Lots.jsvc', "mutation($data: [ParcelInput!]!) { importParcels(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", parcels: $data) }")
 # importData('Taxes.jsvc', "mutation($data: [ParcelInput!]!) { importParcels(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", parcels: $data) }")
-# importData('Addresses.jsvc', "mutation($data: [ParcelInput!]!) { importParcels(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", parcels: $data) }")
+importData('Addresses.jsvc', "mutation($data: [ParcelInput!]!) { importParcels(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", parcels: $data) }")
+# importData('Parcels.jsvc', "mutation($data: [ParcelInput!]!) { importParcels(state: \"CA\", county: \"San Francisco\", city: \"San Francisco\", parcels: $data) }")

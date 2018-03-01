@@ -142,4 +142,17 @@ for index, row in tqdm(LOTS_DF.iterrows(), total=len(LOTS_DF)):
 #
 print('Saving')
 tools.save(PARCELS, 'Parcels')
+
+mapping = pd.DataFrame(columns=['ParcelID', 'MapParcelID'])
+mapping = mapping.set_index('ParcelID')
+
+for key in tqdm(PARCELS.keys()):
+    for tkey in PARCELS[key]['related']:
+        mapping = mapping.append({
+            'ParcelID': tkey,
+            'MapParcelID': key
+        }, ignore_index=True)
+
+mapping.to_csv('Parcel_Mapping.csv')
+
 print('Done')

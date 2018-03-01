@@ -56,7 +56,10 @@ def save(src, name):
         data = {}
         data['id'] = k
         for sk in s:
-            data[sk] = s[sk]
+            if sk == 'geometry':
+                data[sk] = s[sk].coordinates
+            else:
+                data[sk] = s[sk]
         # data['extras'] = convertExtras(s['extras'])
         # if 'blockId' in s:
         #    data['blockId'] = s['blockId']
@@ -92,3 +95,12 @@ def find_largest_inersection_indexed(geo, elements, index: Index):
             max = area
             id = key
     return id
+
+def load_parcel_map():
+    mapping = pd.read_csv('Parcel_Mapping.csv', sep=',', dtype={ 'ParcelID': str, 'MapParcelID': str })
+    res = {}
+    for index, row in mapping.iterrows():
+        mainParcelId = row['MapParcelID']
+        parcelId = row['ParcelID']
+        res[parcelId] = mainParcelId
+    return res

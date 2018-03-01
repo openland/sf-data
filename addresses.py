@@ -3,6 +3,7 @@ import math
 import time
 import json
 from tqdm import tqdm
+import tools
 
 def convertExtras(src):
     res = {'ints':[], 'floats': [], 'strings': [], 'enums': []}
@@ -38,30 +39,28 @@ ADDRESSES_DF = pd.read_csv(
     sep=',',
     dtype={
         'Block Lot': str
-        # 'Closed Roll Fiscal Year': str,
-        # 'Block and Lot Number': str,
-        # 'Closed Roll Assessed Fixtures Value': str,
-        # 'Closed Roll Assessed Land Value': str,
-        # 'Closed Roll Assessed Personal Prop Value': str,
-        # 'Closed Roll Assessed Improvement Value': str,
-        # 'Year Property Built': str
     })
 end = time.time()
 print(end - start)
 
+# Lot Mappings
 
-print(ADDRESSES_DF['Street Type'].unique())
-# TAXES_DF = TAXES_DF[TAXES_DF['Closed Roll Fiscal Year'] == '2015']
-
-# print("Preprocessing Lots...")
-# start = time.time()
+print("Lot Mappings")
+start = time.time()
+MAPPING = tools.load_parcel_map()
+end = time.time()
+print(end - start)
 
 LOTS = {}
-for index, row in tqdm(ADDRESSES_DF.iterrows()):
+for index, row in tqdm(ADDRESSES_DF.iterrows(), total=len(ADDRESSES_DF)):
     parcelId = row['Block Lot']
+
     if not isinstance(parcelId, str):
         continue
     
+    if parcelId in MAPPING:
+        parcelId = MAPPING[parcelId]
+
     if parcelId not in LOTS:
         LOTS[parcelId] = {'extras': {},'addresses':[]}
     record = LOTS[parcelId]
@@ -107,22 +106,5 @@ for index, row in tqdm(ADDRESSES_DF.iterrows()):
         'streetNumber': streetNumber,
         'streetNumberSuffix': streetNumberSuffix
     })
-
-# 'St' | 'Av' | 'Dr' | 'Bl' | 'Wy' | 'Ln' | 'Hy' | 'Tr' | 'Pl' | 'Ct' |
-#    'Pk' | 'Al' | 'Cr' | 'Rd' | 'Sq' | 'Pz' | 'Sw' | 'No' | 'Rw' | 'So' | 'Hl' | 'Wk'
-#     row['']
-
-#     if isinstance(row['Closed Roll Assessed Land Value'], str):
-#         LOTS[parcelId]['extras']['land_value'] = row['Closed Roll Assessed Land Value']
-#     if isinstance(row['Closed Roll Assessed Improvement Value'], str):
-#         LOTS[parcelId]['extras']['improvement_value'] = row['Closed Roll Assessed Improvement Value']
-#     if isinstance(row['Closed Roll Assessed Fixtures Value'], str):
-#         LOTS[parcelId]['extras']['fixtures_value'] = row['Closed Roll Assessed Fixtures Value']
-#     if isinstance(row['Closed Roll Assessed Personal Prop Value'], str):
-#         LOTS[parcelId]['extras']['personal_prop_value'] = row['Closed Roll Assessed Personal Prop Value']
-
-#     if isinstance(row['Year Property Built'], str):
-#         LOTS[parcelId]['extras']['year_built'] = row['Year Property Built']
-
 
 save(LOTS, 'Addresses')
