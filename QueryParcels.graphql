@@ -1,0 +1,1 @@
+mutation($data: [ParcelInput!]!) { importParcels(state: "CA", county: "San Francisco", city: "San Francisco", parcels: $data) }

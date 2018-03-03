@@ -2,6 +2,7 @@ import pandas as pd
 import math
 import time
 import json
+import tools
 from tqdm import tqdm
 
 def convertExtras(src):
@@ -52,31 +53,65 @@ TAXES_DF = pd.read_csv(
         'Prior Sales Date': str,
         'Recordation Date': str
     })
+TAXES_DF = TAXES_DF[TAXES_DF['Closed Roll Fiscal Year'] == '2015']    
 end = time.time()
 print(end - start)
 
-TAXES_DF = TAXES_DF[TAXES_DF['Closed Roll Fiscal Year'] == '2015']
+print("Loading Mappings")
+start = time.time()
+MAPPING = tools.load_parcel_map()
+end = time.time()
+print(end - start)
 
 print("Preprocessing Lots...")
-start = time.time()
-
 LOTS = {}
-for index, row in tqdm(TAXES_DF.iterrows()):
+for index, row in tqdm(TAXES_DF.iterrows(), total=len(TAXES_DF)):
+
+    #
+    # Loading Parcel ID
+    #
+
     parcelId = row['Block and Lot Number']
+    if parcelId in MAPPING:
+        parcelId = MAPPING[parcelId]
+
+    # 
+    # Creating record if not present
+    #
     if parcelId not in LOTS:
         LOTS[parcelId] = {'extras': {}}
 
+    #
+    # Valuations
+    #
+
     if isinstance(row['Closed Roll Assessed Land Value'], str):
-        LOTS[parcelId]['extras']['land_value'] = row['Closed Roll Assessed Land Value']
+        e = 0
+        if 'land_value' in LOTS[parcelId]['extras']:
+            e = LOTS[parcelId]['extras']['land_value']
+        LOTS[parcelId]['extras']['land_value'] = int(row['Closed Roll Assessed Land Value']) + e
     if isinstance(row['Closed Roll Assessed Improvement Value'], str):
-        LOTS[parcelId]['extras']['improvement_value'] = row['Closed Roll Assessed Improvement Value']
+        e = 0
+        if 'improvement_value' in LOTS[parcelId]['extras']:
+            e = LOTS[parcelId]['extras']['improvement_value']
+        LOTS[parcelId]['extras']['improvement_value'] = int(row['Closed Roll Assessed Improvement Value']) + e
     if isinstance(row['Closed Roll Assessed Fixtures Value'], str):
-        LOTS[parcelId]['extras']['fixtures_value'] = row['Closed Roll Assessed Fixtures Value']
+        e = 0
+        if 'fixtures_value' in LOTS[parcelId]['extras']:
+            e = LOTS[parcelId]['extras']['fixtures_value']
+        LOTS[parcelId]['extras']['fixtures_value'] = int(row['Closed Roll Assessed Fixtures Value']) + e
     if isinstance(row['Closed Roll Assessed Personal Prop Value'], str):
-        LOTS[parcelId]['extras']['personal_prop_value'] = row['Closed Roll Assessed Personal Prop Value']
+        e = 0
+        if 'personal_prop_value' in LOTS[parcelId]['extras']:
+            e = LOTS[parcelId]['extras']['personal_prop_value']
+        LOTS[parcelId]['extras']['personal_prop_value'] = int(row['Closed Roll Assessed Personal Prop Value']) + e
+
+    #
+    # Building Stats
+    #
 
     if isinstance(row['Year Property Built'], str):
-        LOTS[parcelId]['extras']['year_built'] = row['Year Property Built']
+        LOTS[parcelId]['extras']['year_built'] = int(row['Year Property Built'])
     if isinstance(row['Number of Bathrooms'], str):
         LOTS[parcelId]['extras']['count_bathrooms'] = int(float(row['Number of Bathrooms']))
     if isinstance(row['Number of Bedrooms'], str):
@@ -87,6 +122,10 @@ for index, row in tqdm(TAXES_DF.iterrows()):
         LOTS[parcelId]['extras']['count_stories'] = int(float(row['Number of Stories']))
     if isinstance(row['Number of Units'], str):
         LOTS[parcelId]['extras']['count_units'] = int(float(row['Number of Units']))
+
+    #
+    # Some Random Dates
+    #
 
     if isinstance(row['Current Sales Date'], str):
         LOTS[parcelId]['extras']['sales_date'] = pd.to_datetime(row['Current Sales Date']).strftime('%Y-%m-%d')
